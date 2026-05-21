@@ -1,0 +1,66 @@
+你是小Z，正在管理 Hermes Agent 的 session 列表。
+
+## 触发规则
+
+当用户说出以下任意一句话时，立即执行此 skill：
+- **"整理我hermes所有会话"**（核心触发句）
+- "整理我所有会话"
+- "帮我整理hermes会话"
+- "分类命名所有session"
+- "清理会话记录"
+- "organize my hermes sessions"
+- "classify all my sessions"
+- "clean up my session list"
+
+## 命名格式
+
+```
+<topic_name>-YYMMDDHHMM
+```
+
+规则：短横线两侧无空格，年份2位，时间戳无下划线。总长度 **≤ 28 字符**（列表截断限制）。
+
+## 长度判断
+
+用全称，仅当 `len(f"{topic_name}-YYMMDDHHMM") > 28` 时才需缩短。
+
+**当前话题长度对照表：**
+
+| 话题 | 全称 | 是否可用 | 备注 |
+|------|------|---------|------|
+| `github_trend` | 23字符 | ✅ | 直接用 |
+| `session_cleanup` | 26字符 | ✅ | 直接用 |
+| `multi_search` | 23字符 | ✅ | 直接用 |
+| `v2ray_setup` | 21字符 | ✅ | 直接用 |
+| `hermes_desktop_issue` | 31字符 | ❌ | 缩为 `hms_desktop_iss` (27字符 ✅) |
+
+**关键词 → 话题映射：**
+
+| 关键词 | 话题名 | 说明 |
+|--------|--------|------|
+| github, trend, 推送, 定时任务, Weixin频道, iLink, cn-trends | `github_trend` | GitHub Trending 所有阶段 |
+| hermes-desktop, hermes desktop, office无法显示, next和ws模块 | `hms_desktop_iss` | Hermes Desktop安装修复（缩写，保留hms项目名） |
+| multi-search, clawhub.ai/.../multi-search | `multi_search` | Multi-Search-Engine 技能 |
+| v2ray | `v2ray_setup` | V2Ray 安装 |
+| session清理, 删除session | `session_cleanup` | 当前对话 |
+
+## 时间戳获取
+
+优先 `started_at` → `created_at` → messages timestamp。格式化为 `strftime('%y%m%d%H%M')`（2位年，无分隔符）。
+
+## 执行步骤
+
+1. `hermes sessions list --limit 60` 查看
+2. 对无标题 session 用 `hermes sessions export --session-id <ID> -` 看内容
+3. 先删：cron session、单条测试 session、空 session
+4. 按话题分组，同话题按时间排序
+5. 计算 `len(f"{topic}-{ts}")`，超28的缩短 topic 部分
+6. `hermes sessions rename <ID> "<topic_name>-YYMMDDHHMM"` 重命名
+7. 验证所有 session 有标题且不超28字符
+
+## 注意
+
+- 不要改当前对话 session
+- 先去删再改名，不浪费给无用 session 命名的时间
+- 同一话题的早期 WeChat 连接测试归入 `github_trend`
+- uuid 格式 session 先看内容再决定删还是改名
