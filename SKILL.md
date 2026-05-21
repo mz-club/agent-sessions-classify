@@ -108,6 +108,21 @@ No spaces around the dash. Year is 2-digit. No underscores in timestamp.
 | `env_setup` | 10 chars | 10+10=20 ✅ fits as-is |
 | `desktop_app_issue` | 17 chars | 17+10=27 ✅ fits as-is |
 
+**Common abbreviations (use when length exceeds 28):**
+
+| Full | Short | Note |
+|------|-------|------|
+| `hermes` | `hms` | Project abbreviation |
+| `github` | `gh` | Common shorthand |
+| `desktop` | `desktop` | Keep as-is |
+| `issue` | `iss` | Problem/fix |
+| `trend`/`trending` | `tr` | Trending topic |
+| `setup` | `setup` | Keep as-is |
+| `cleanup` | `clean` | Housekeeping |
+| `search` | `srch` | Search |
+
+> Use abbreviations only when needed. Prefer full names.
+
 ### Step 4: Delete Unnecessary Sessions
 
 **Sessions safe to delete** (ask user first):

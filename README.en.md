@@ -34,6 +34,21 @@ Use full topic names when they fit within 28 chars. Shorten only when necessary.
 | `env_setup` | 10 chars | 10+10=20 ✅ | `env_setup` |
 | `desktop_app_issue` | 17 chars | 17+10=27 ✅ | `desktop_app_issue` |
 
+## Common Abbreviations
+
+| Full | Short | Note |
+|------|-------|------|
+| `hermes` | `hms` | Project abbreviation |
+| `github` | `gh` | Common shorthand |
+| `desktop` | `desktop` | Keep as-is |
+| `issue` | `iss` | Problem/fix |
+| `trend`/`trending` | `tr` | Trending topic |
+| `setup` | `setup` | Keep as-is |
+| `cleanup` | `clean` | Housekeeping |
+| `search` | `srch` | Search topic |
+
+> Use abbreviations only when `topic_name` exceeds 28 chars. Prefer full names.
+
 ### Topic Definitions (Examples)
 
 | Topic Name | Contains |
