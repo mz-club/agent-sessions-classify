@@ -4,6 +4,8 @@
 
 ## 触发方式
 
+📖 English version: [README.en.md](README.en.md)
+
 说以下任意一句话即可激活：
 - **"整理我hermes所有会话"**
 - "整理我所有会话"
