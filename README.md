@@ -30,20 +30,20 @@
 
 | 全称 | 字符数 | 28限制 | 使用名 |
 |------|--------|--------|--------|
-| `github_trend` | 13 | 13+10=23 ✅ | `github_trend` |
+| `project_A_trend` | 16 | 16+10=26 ✅ | `project_A_trend` |
 | `session_cleanup` | 16 | 16+10=26 ✅ | `session_cleanup` |
-| `multi_search` | 13 | 13+10=23 ✅ | `multi_search` |
-| `v2ray_setup` | 11 | 11+10=21 ✅ | `v2ray_setup` |
-| `hermes_desktop_issue` | 22 | 22+10=32 ❌ | `hms_desktop_iss` (17+10=27 ✅) |
+| `skill_setup` | 12 | 12+10=22 ✅ | `skill_setup` |
+| `env_setup` | 10 | 10+10=20 ✅ | `env_setup` |
+| `desktop_app_issue` | 17 | 17+10=27 ✅ | `desktop_app_issue` |
 
-### 话题定义
+### 话题定义（示例）
 
 | 话题名 | 包含内容 |
 |--------|---------|
-| `github_trend` | GitHub Trending 配置、推送排查、cn-trends 集成、WeChat 连接测试 |
-| `hms_desktop_iss` | Hermes Desktop 安装、编译、修复问题（`hermes_desktop_issue` 缩写，保留 `hms` 项目缩写） |
-| `multi_search` | Multi-Search-Engine 技能安装探索 |
-| `v2ray_setup` | V2Ray 安装配置 |
+| `project_A_trend` | 项目A的热门趋势配置、推送排查、第三方集成 |
+| `desktop_app_issue` | 桌面应用安装、编译、修复问题 |
+| `skill_setup` | 技能安装探索 |
+| `env_setup` | 环境安装配置 |
 | `session_cleanup` | Session 整理清理任务 |
 
 ## 命令速查
@@ -56,7 +56,7 @@ hermes sessions list --limit 60
 hermes sessions export --session-id <ID> -
 
 # 重命名
-hermes sessions rename <ID> "github_trend-2605160759"
+hermes sessions rename <ID> "project_A_trend-2501010915"
 
 # 删除
 hermes sessions delete --yes <ID>
@@ -65,4 +65,4 @@ hermes sessions delete --yes <ID>
 ## 清理规则
 
 **可删除：** cron 日志、单条测试连通性 session、空 session
-**保留：** 当前对话、>2条消息的对话、Weixin 来源 session
+**保留：** 当前对话、>2条消息的对话、所有需要保留的 session

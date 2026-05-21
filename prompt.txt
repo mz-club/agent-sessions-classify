@@ -24,24 +24,24 @@
 
 用全称，仅当 `len(f"{topic_name}-YYMMDDHHMM") > 28` 时才需缩短。
 
-**当前话题长度对照表：**
+**示例话题长度对照表：**
 
 | 话题 | 全称 | 是否可用 | 备注 |
 |------|------|---------|------|
-| `github_trend` | 23字符 | ✅ | 直接用 |
+| `project_A_trend` | 26字符 | ✅ | 直接用 |
 | `session_cleanup` | 26字符 | ✅ | 直接用 |
-| `multi_search` | 23字符 | ✅ | 直接用 |
-| `v2ray_setup` | 21字符 | ✅ | 直接用 |
-| `hermes_desktop_issue` | 31字符 | ❌ | 缩为 `hms_desktop_iss` (27字符 ✅) |
+| `skill_setup` | 22字符 | ✅ | 直接用 |
+| `env_setup` | 20字符 | ✅ | 直接用 |
+| `desktop_app_issue` | 27字符 | ✅ | 直接用 |
 
-**关键词 → 话题映射：**
+**关键词 → 话题映射（示例）：**
 
 | 关键词 | 话题名 | 说明 |
 |--------|--------|------|
-| github, trend, 推送, 定时任务, Weixin频道, iLink, cn-trends | `github_trend` | GitHub Trending 所有阶段 |
-| hermes-desktop, hermes desktop, office无法显示, next和ws模块 | `hms_desktop_iss` | Hermes Desktop安装修复（缩写，保留hms项目名） |
-| multi-search, clawhub.ai/.../multi-search | `multi_search` | Multi-Search-Engine 技能 |
-| v2ray | `v2ray_setup` | V2Ray 安装 |
+| trend, trending, 推送, 定时任务, data push | `project_A_trend` | 项目A趋势推送所有阶段 |
+| desktop app, desktop issue, module install | `desktop_app_issue` | 桌面应用安装修复 |
+| install skill, setup plugin, skill相关 | `skill_setup` | 技能安装 |
+| env, environment, install, setup | `env_setup` | 环境安装配置 |
 | session清理, 删除session | `session_cleanup` | 当前对话 |
 
 ## 时间戳获取
@@ -62,5 +62,4 @@
 
 - 不要改当前对话 session
 - 先去删再改名，不浪费给无用 session 命名的时间
-- 同一话题的早期 WeChat 连接测试归入 `github_trend`
 - uuid 格式 session 先看内容再决定删还是改名

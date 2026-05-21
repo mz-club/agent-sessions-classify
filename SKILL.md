@@ -37,7 +37,7 @@ Manage Hermes Agent session list (`hermes sessions list`). Classify untitled ses
 - User asks to clean up, rename, or organize sessions
 - After major troubleshooting cycles, need to categorize sessions for future reference
 - User wants to delete stale cron sessions or short test sessions
-- You see sessions with uuid-style IDs (e.g. `d40acd6b-1e67-403a-a567-c494b56fb5a7`) that have no meaningful title
+- You see sessions with uuid-style IDs (e.g. `a1b2c3d4-e5f6-7890-abcd-ef1234567890`) that have no meaningful title
 
 ## Workflow
 
@@ -70,19 +70,15 @@ print(f'msgs={len(msgs)} first=\"{first}\"')
 "
 ```
 
-Key clues for topic classification:
+Key clues for topic classification (examples — adapt to actual project):
 
 | First message contains | Likely topic |
 |---|---|
-| "github", "trend", "推送", "定时任务" | `github_trend` |
-| "hermes-desktop", "hermes desktop", "office无法显示", "next和ws模块" | `hermes_desktop_issue` |
-| "安装v2ray" | `v2ray_setup` |
-| "multi-search-engine", "clawhub.ai/.../multi-search" | `multi_search` |
-| "cn-trends", "推送热点" + date 5/10-5/12 | `github_trend` (early phase) |
-| "安装此技能", "学习此技能" + "cn-trends" | `github_trend` |
-| "检查...未能推送", "Weixin频道", "推送到微信", "iLink" | `github_trend` |
-| "测试连通性", "连通性测试", "验证能否推送" | Delete (connection test) |
-| "继续上述未完成的任务" | Check parent session's topic |
+| "trend", "trending", "推送", "scheduled task", "data push" | `project_A_trend` |
+| "desktop app", "desktop issue", "office not working", "module install" | `desktop_app_issue` |
+| "install env", "setup environment", "environment config" | `env_setup` |
+| "install skill", "setup plugin", "learn this skill" | `skill_setup` |
+| "connection test", "connectivity test", "verification test" | Delete (test session) |
 | "[IMPORTANT: You are running as a scheduled cron job" | Delete (cron log) |
 
 ### Step 3: Group by Topic and Time
@@ -106,11 +102,11 @@ No spaces around the dash. Year is 2-digit. No underscores in timestamp.
 
 | Full name | Length | Shortened (if needed) |
 |-----------|--------|----------------------|
-| `github_trend` | 13 chars | 13+10=23 ✅ fits as-is |
+| `project_A_trend` | 16 chars | 16+10=26 ✅ fits as-is |
 | `session_cleanup` | 16 chars | 16+10=26 ✅ fits as-is |
-| `multi_search` | 13 chars | 13+10=23 ✅ fits as-is |
-| `v2ray_setup` | 11 chars | 11+10=21 ✅ fits as-is |
-| `hermes_desktop_issue` | 22 chars | 22+10=32 ❌ shorten to `hms_desktop_iss` (keep `hms` as project abbreviation + `desktop` + `iss` for issue) = 17+10=27 ✅ |
+| `skill_setup` | 12 chars | 12+10=22 ✅ fits as-is |
+| `env_setup` | 10 chars | 10+10=20 ✅ fits as-is |
+| `desktop_app_issue` | 17 chars | 17+10=27 ✅ fits as-is |
 
 ### Step 4: Delete Unnecessary Sessions
 
@@ -127,7 +123,6 @@ hermes sessions delete --yes <SESSION_ID>
 **Do NOT delete:**
 - The current active session (where you are talking to the user)
 - Sessions with meaningful conversation history (>2 user messages)
-- Weixin sessions (platform=weixin) that may have ongoing context
 - Sessions the user specifically asked to keep
 
 ### Step 5: Rename Sessions
@@ -137,9 +132,9 @@ hermes sessions rename <SESSION_ID> "<topic_name>-YYMMDDHHMM"
 ```
 
 **Important:** The title is truncated in `hermes sessions list` display after ~28 characters. Always verify total length ≤ 28. Examples:
-- `github_trend-2605160759` (23 chars) ✅ fits
-- `hms_desktop_iss-2605161230` (27 chars) ✅ fits
-- `hermes_desktop_issue-2605161230` (31 chars) ❌ gets cut to `hermes_desktop_issue-2` — useless
+- `project_A_trend-2501010915` (25 chars) ✅ fits
+- `desktop_app_issue-2501010915` (26 chars) ✅ fits
+- `very_long_topic_name-2501010915` (30 chars) ❌ gets cut to `very_long_topic_name-2501` — useless
 
 ### Step 6: Verify
 
@@ -155,20 +150,19 @@ Check that:
 
 ## Handling Ambiguous Boundaries
 
-Some sessions span multiple topics (e.g., a session starts with "连通性测试" but moves into "GitHub Trending推送排查"). Rules:
+Some sessions span multiple topics (e.g., a session starts with "connection test" but moves into deployment troubleshooting). Rules:
 
-1. **Look at the FULL conversation** — not just the first message. If >50% of user messages relate to github_trend, classify as github_trend.
-2. **Merge into the broader topic** — early WeChat connectivity tests are part of the github_trend problem, not a separate topic.
+1. **Look at the FULL conversation** — not just the first message. If >50% of user messages relate to one topic, classify as that topic.
+2. **Merge into the broader topic** — early connectivity tests are often part of a larger problem, not a separate topic.
 3. **If truly mixed and no dominant topic**, use the topic of the LAST substantive user message.
 
 ## Common Pitfalls
 
 1. **Renaming the current active session.** Session you're talking in right now should be `session_cleanup` or the original topic — don't rename to something confusing.
 2. **Using wrong timestamp.** Don't use `hermes sessions list` display time (relative like "2d ago"). Always get the actual timestamp from export JSON.
-3. **Creating duplicate topic names.** Before inventing a new topic, check if the session could be absorbed into an existing topic group (especially `github_trend` which spans many sub-topics).
-4. **Forgetting to sync three docs.** When updating github_trend workflow, remember the three-doc sync: README.md + prompt.txt + SKILL.md.
-5. **Over-naming.** Sessions with only 1-2 user messages and no useful content should be DELETED, not named.
-6. **Title truncation.** `hermes sessions list` truncates titles after ~28 chars. `github_trend-2605160759` (23 chars) fits fine. `hermes_desktop_issue-2605161230` (31 chars) gets cut to `hermes_desktop_issue-2` — useless. Always verify: `len(f"{topic}-{ts}") ≤ 28`. For `hermes_desktop_issue`, keep project abbreviation: `hms_desktop_iss` (17 chars + 10 = 27 ✅).
+3. **Creating duplicate topic names.** Before inventing a new topic, check if the session could be absorbed into an existing topic group.
+4. **Over-naming.** Sessions with only 1-2 user messages and no useful content should be DELETED, not named.
+5. **Title truncation.** `hermes sessions list` truncates titles after ~28 chars. Always verify: `len(f"{topic}-{ts}") ≤ 28`.
 
 ## Verification Checklist
 
@@ -185,12 +179,3 @@ Some sessions span multiple topics (e.g., a session starts with "连通性测试
 ## Reference Files
 
 - `references/topic-classification-reference.md` — Quick lookup table for keyword→topic mapping, abbreviation rules, and length calculations
-
-## Three-Doc Sync
-
-This skill follows the same three-doc sync pattern as mygithub_trend. When updating:
-1. SKILL.md (this file) — for agent reuse via `skill_load`
-2. `/home/ts/文档/agent-sessions-classify/agent-sessions-classify_readme.md` — human-readable documentation
-3. `/home/ts/文档/agent-sessions-classify/agent-sessions-classify_prompt.txt` — AI-readable prompt for future sessions
-
-Always update all three together.
