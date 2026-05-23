@@ -1,10 +1,10 @@
 # agent-sessions-classify — Session 分类与命名工具
 
-> 管理 Hermes Agent 的 session 列表，对未命名的 session 进行话题分类、统一命名，并清理无用会话。
-
-## 触发方式
+> 管理 Hermes Agent 的 session 列表，只处理未正确命名的 session，跳过已按规范命名的。对未命名的 session 进行话题分类、统一命名，并清理无用会话。
 
 📖 English version: [README.en.md](README.en.md)
+
+## 触发方式
 
 说以下任意一句话即可激活：
 - **"整理我hermes所有会话"**
@@ -14,6 +14,19 @@
 - "清理会话记录"
 - "organize my hermes sessions"
 - "classify all my sessions"
+
+## v2.0.0 新功能：跳过已命名的 Session
+
+在开始整理前，先检查每个 session 的 title 是否符合规范格式：
+
+```
+^[a-z][a-z_]+-\d{10}$
+```
+
+即：以小写字母开头 + 下划线 + 短横线 + 10位数字时间戳（YYMMDDHHMM）
+
+- **匹配此格式** → 跳过，不改动
+- **不匹配此格式** → 需要处理（包括 `—` 未命名、随机标题、格式错误的已命名 session）
 
 ## 命名格式
 

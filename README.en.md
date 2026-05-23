@@ -1,6 +1,6 @@
 # agent-sessions-classify — Hermes Agent Session Organizer
 
-> Classify, rename, and clean up Hermes Agent session titles — group related sessions under unified topic names and remove noisy test/cron sessions.
+> Classify, rename, and clean up Hermes Agent session titles — only process sessions that don't follow the naming convention. Skip already-properly-named sessions, group related sessions under unified topic names, and remove noisy test/cron sessions.
 
 ## Trigger
 
@@ -10,6 +10,22 @@ Say any of the following to activate:
 - "clean up my session list"
 - "rename all sessions"
 - "整理我hermes所有会话" (Chinese)
+
+## v2.0.0 New Feature: Skip Already-Named Sessions
+
+Before processing, each session title is checked against:
+
+```
+^[a-z][a-z_]+-\d{10}$
+```
+
+(Starts with lowercase letters + underscores, dash, exactly 10 digits = YYMMDDHHMM)
+
+- **Match** → Skip entirely, no changes
+- **No match** → Process (classify, rename, or delete)
+
+This includes: untitled `—` sessions, sessions with random manual titles,
+sessions with wrong format (missing timestamp, wrong separator).
 
 ## Naming Convention
 

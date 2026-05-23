@@ -1,7 +1,7 @@
 ---
 name: agent-sessions-classify
 description: "Use when classifying, renaming, and tidying Hermes Agent session titles. Groups related sessions under unified topic names with timestamps, deletes test/cron sessions, and ensures consistent naming conventions."
-version: 1.1.0
+version: 2.0.0
 author: "MZ"
 license: MIT
 metadata:
@@ -14,7 +14,7 @@ metadata:
 
 ## Overview
 
-Manage Hermes Agent session list (`hermes sessions list`). Classify untitled sessions into topic groups, rename with consistent `topic_name-YYMMDDHHMM` format, and clean up noisy sessions (cron logs, connection tests, single-message tests).
+Manage Hermes Agent session list (`hermes sessions list`). Only process sessions that don't follow the naming convention. Skip already-properly-named sessions, classify untitled sessions into topic groups, rename with consistent `topic_name-YYMMDDHHMM` format, and clean up noisy sessions (cron logs, connection tests, single-message tests).
 
 ## When to Use
 
@@ -40,6 +40,32 @@ Manage Hermes Agent session list (`hermes sessions list`). Classify untitled ses
 - You see sessions with uuid-style IDs (e.g. `a1b2c3d4-e5f6-7890-abcd-ef1234567890`) that have no meaningful title
 
 ## Workflow
+
+### Step 0: Filter — Only Process Sessions Without a Proper Timestamp Title
+
+**Core logic:** A session already has a proper title if it matches the regex:
+
+```
+^[a-z][a-z_]+-\d{10}$
+```
+
+(Starts with lowercase letter + underscores, followed by dash, followed by exactly 10 digits = YYMMDDHHMM)
+
+Sessions that match → **skip entirely**, no need to inspect or rename.
+Sessions that DON'T match → proceed to Step 1.
+
+This includes:
+- Sessions titled `—` (untitled) → process
+- Sessions with random manual titles → process (re-title with proper format)
+- Sessions with uuid-style IDs → process
+- Sessions already named but in wrong format (e.g. missing timestamp, wrong separator) → process
+
+```bash
+# Quick filter: list only sessions that need attention
+hermes sessions list --limit 60 | grep -E '^\s+[0-9a-f-]{36}\s+\|\s+(—|[a-z_]+-[0-9]{1,9}[^0-9]|[a-z_]+$)' 2>/dev/null || true
+```
+
+But for reliability, iterate all sessions and regex-check each title.
 
 ### Step 1: Survey Existing Sessions
 
@@ -127,7 +153,7 @@ No spaces around the dash. Year is 2-digit. No underscores in timestamp.
 
 **Sessions safe to delete** (ask user first):
 - `cron_*` sessions (old cron job logs, no user messages)
-- Single-message connection test sessions ("连通性测试", "验证能否推送")
+- Single-message connection test sessions
 - Empty sessions with 0 messages
 - Sessions where the only user message is "[IMPORTANT: You are running as a scheduled cron job..."
 
@@ -173,11 +199,12 @@ Some sessions span multiple topics (e.g., a session starts with "connection test
 
 ## Common Pitfalls
 
-1. **Renaming the current active session.** Session you're talking in right now should be `session_cleanup` or the original topic — don't rename to something confusing.
+1. **Renaming the current active session.** — Check with `hermes sessions current` or check your own session ID.
 2. **Using wrong timestamp.** Don't use `hermes sessions list` display time (relative like "2d ago"). Always get the actual timestamp from export JSON.
 3. **Creating duplicate topic names.** Before inventing a new topic, check if the session could be absorbed into an existing topic group.
 4. **Over-naming.** Sessions with only 1-2 user messages and no useful content should be DELETED, not named.
-5. **Title truncation.** `hermes sessions list` truncates titles after ~28 chars. Always verify: `len(f"{topic}-{ts}") ≤ 28`.
+5. **Forgetting the Step 0 filter.** Always regex-check session titles first. Skip sessions that already match `^[a-z][a-z_]+-\d{10}$`.
+6. **Title truncation.** `hermes sessions list` truncates titles after ~28 chars. Always verify: `len(f"{topic}-{ts}") ≤ 28`.
 
 ## Verification Checklist
 

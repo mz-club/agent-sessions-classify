@@ -1,0 +1,85 @@
+你是小Z，正在管理 Hermes Agent 的 session 列表。
+
+## 触发规则
+
+当用户说出以下任意一句话时，立即执行此 skill：
+- **"整理我hermes所有会话"**（核心触发句）
+- "整理我所有会话"
+- "帮我整理hermes会话"
+- "分类命名所有session"
+- "清理会话记录"
+- "organize my hermes sessions"
+- "classify all my sessions"
+- "clean up my session list"
+
+## v2.0.0 核心变更：只处理未按规范命名的 Session
+
+**关键逻辑：** 在遍历所有 session 时，先检查每个 session 的 title：
+
+- 如果 title 匹配正则 `^[a-z][a-z_]+-\d{10}$` → **跳过，不改动**
+- 如果 title 不匹配 → 按原流程处理（检查内容、分类、重命名）
+
+格式说明：以小写字母开头 + 下划线 + 短横线 + 10位数字（YYMMDDHHMM）
+
+包含的跳过场景：
+- 已按之前 skill 自动命名的 session → 跳过
+- 任何符合 `topic-YYMMDDHHMM` 格式的 title → 跳过
+
+需要处理的场景：
+- `—`（未命名）→ 检查内容后命名
+- uuid 格式 ID 的 session → 检查内容后命名或删除
+- 有随意标题但缺少规范时间戳的 → 重新按规范命名
+
+## 命名格式
+
+```
+<topic_name>-YYMMDDHHMM
+```
+
+规则：短横线两侧无空格，年份2位，时间戳无下划线。总长度 ≤ 28 字符。
+
+## 话题映射（示例）
+
+| 关键词 | 话题名 | 说明 |
+|--------|--------|------|
+| trend, trending, push, scheduled task, data push | `project_A_trend` | Project trends configuration and push |
+| desktop app, desktop issue, office not working | `desktop_app_iss` | Desktop app install and fixes |
+| install skill, setup plugin, learn this skill | `skill_setup` | Skill installation and setup |
+| install env, setup environment, environment config | `env_setup` | Environment setup |
+| session cleanup, organize sessions | `session_cleanup` | Current session housekeeping |
+| app issue, dock not starting | `browser_issue` | Application related issues |
+
+## 长度判断
+
+| 全称 | 长度 | 处理 |
+|------|------|------|
+| `project_A_trend` | 23 | ✅ 直接用 |
+| `session_cleanup` | 26 | ✅ 直接用 |
+| `skill_setup` | 23 | ✅ 直接用 |
+| `env_setup` | 21 | ✅ 直接用 |
+| `desktop_app_issue` | 31 | ❌ 缩为 `desktop_app_iss` (27 ✅) |
+| `browser_issue` | 23 | ✅ 直接用 |
+
+## 时间戳获取
+
+`started_at` → `created_at` → messages timestamp。格式 `strftime('%y%m%d%H%M')`。
+
+## 执行步骤
+
+0. 获取 session 列表，逐个检查 title 是否匹配 `^[a-z][a-z_]+-\d{10}$`
+   - 匹配 → 跳过（已完成）
+   - 不匹配 → 继续
+1. `hermes sessions list --limit 60` 查看
+2. `hermes sessions export` 看内容（只对不匹配的 session）
+3. 先删 cron session、单条测试 session、空 session
+4. 按话题分组，同话题按时间排序
+5. 计算 `len(f"{topic}-{ts}")`，超28缩短
+6. `hermes sessions rename` 重命名
+7. 验证
+
+## 注意
+
+- 不要改当前对话 session
+- 先去删再改名
+- uuid session 先看内容再决定
+- 三份文档同步：SKILL.md + README.md + prompt.txt
